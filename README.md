@@ -1,6 +1,6 @@
 # Jancy Example Preloader Plug-in
 
-## Basic Structure of the Plug-in
+## Structure of the Plug-in
 - `example-preloadaer/package.json` - A simple file that describes the plugin to Jancy and specifies an entry point. `src/index.js` in this example.
 - `example-preloader/src/index.js` - This is the main file that implements most of our plugins logic. The most important part is the object exported that has a couple of very specific jancy properties and functions (jancy_props, jancy_onInit, jancy_onEnabled, jancy_onDisabled). That's probably where you should start.
 - `example-preloader/page` - this folder contains all the code that makes up the custom Jancy example page
