@@ -1,0 +1,6 @@
+{
+  "name": "example-preloader",
+  "version": "0.0.1",
+  "description": "An example Jancy preloader plugin",
+  "main": "src/index.js"
+}
