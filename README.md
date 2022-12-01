@@ -7,12 +7,12 @@
 
 ## Adding the Plug-in to Jancy
 
-1. Open the plug-in folder
-  - On Windows, open Windows File Explorer and go to %appdata%\Jancy\plugins or on MacOS
-  - On MacOS, open Finder and go to `TODO`
+1. Open the Jancy plug-in folder
+    - On Windows, open Windows File Explorer and go to %appdata%\Jancy\plugins or on MacOS
+    - On MacOS, open Finder and go to `TODO`
 2. Copy `example-preloader` folder to the plug-ins folder from step 1.
 3. Restart Jancy if it's already running.
 4. If everything works correctly you should see the example plugin in the list of plugins in `File -> Settings -> Plugins`.
 5. In any tab in Jancy go to stubhub.com and you should see a button in the upper left corner that the example plugin added.
-6. In another tab, go to the URL jancy://example
+6. In another tab, go to the URL `jancy://example`
 7. Every time you press the button in the stubhub tab, you'll see the counter increment in the example page.
