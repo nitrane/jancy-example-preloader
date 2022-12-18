@@ -28,7 +28,7 @@ const myTabInfo = window.jancyAPI.getTabInfo()
 /* Listen for messages on the "example-count-updated" channel that the BackgroundAPI in
 ** src/index.js will use to notifiy listeners when the count has been updated.
 */
-window.jancyAPI.ipcRenderer.on('example-count-updated', (event, count) => {
+window.jancyAPI.ipc.on('example-count-updated', (event, count) => {
   document.body.querySelector('.click-count').innerHTML = count
 })
 
@@ -36,6 +36,6 @@ window.jancyAPI.ipcRenderer.on('example-count-updated', (event, count) => {
 ** in src/index.js. We receive the starting count back as return value that we use
 ** to set our initial value.
 */
-window.jancyAPI.ipcRenderer.invoke('example-register-page', myTabInfo.tabContentId).then(count => {
+window.jancyAPI.ipc.invoke('example-register-page', myTabInfo.tabContentId).then(count => {
   document.body.querySelector('.click-count').innerHTML = count
 })

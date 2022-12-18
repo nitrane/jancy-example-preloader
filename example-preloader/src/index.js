@@ -81,7 +81,8 @@ module.exports = {
 
     myPreloaderId = jancy.preloaders.add(myPreloader)
 
-    /* A Jancy page is one way you can add your own user interface to Jancy.
+    /* A Jancy page is one way you can add your own user interface to Jancy
+    ** (see https://docs.jancy.io/docs/development/jancy-interfaces/page-registry).
     **
     ** Once installed, your page will be available in Jancy at the URL
     ** jancy://<your page name>
@@ -131,14 +132,12 @@ module.exports = {
   ** This is the entry point of our preloader. This function runs before the
   ** webpage loads in a tab in an isolated context.
   ** ------------------------------------------------------------------------*/
-  myPreloaderFunction() {
-
-    const { webFrame, contextBridge, ipcRenderer } = require('electron')
+  myPreloaderFunction({ jancyAPI, tab, preferences }) {
 
     /* myPreloaderFunction runs in the isolated context of the host webpage.
     ** Since we want to alter the host webpage, we need to inject our code that 
-    ** modifies the host webpage. We can do that using electron's 
-    ** webFrame (see https://www.electronjs.org/docs/latest/api/web-frame) module.
+    ** modifies the host webpage. We can do that via some methods on the jancyAPI
+    ** object.
     */
 
     let markup = `
@@ -178,25 +177,21 @@ module.exports = {
       })()
     `
 
-    /* Before we inject our code, we use electron's contextBridget module
-    ** (see https://www.electronjs.org/docs/latest/api/context-bridge) to add an object 
+    /* Before we inject our code, use the jancyAPI.exposeInMainworld method to add an object 
     ** called "exampleAPI" to the window object of the host page. The exampleAPI
-    ** has function called sendUpdate that when clicked uses electron's
-    ** ipcRenderer module (https://www.electronjs.org/docs/latest/api/ipc-renderer) 
-    ** to send a message on the "example-update" channel (see BackgroundAPI below).
+    ** has function called sendUpdate that when clicked uses the ipc object on the
+    ** jancyAPI object to send a message on the "example-update" channel (see BackgroundAPI below).
     */
-    contextBridge.exposeInMainWorld("exampleAPI", {
+    jancyAPI.exposeInMainWorld("exampleAPI", {
       sendUpdate() {
-        ipcRenderer.send('example-update')
+        jancyAPI.ipc.send('example-update')
       }
     })
 
-    /* Inject a function that gets called immediately that adds some markup
-    ** to the host webpage.
+    /* Inject a function that gets called immediately that adds some markup to the host webpage.
     */
-    webFrame.executeJavaScript(code)
+    jancyAPI.executeCode(code)
   }
-
 }
 
 
@@ -204,23 +199,13 @@ class BackgroundAPI {
 
   constructor(jancy) {
 
-    const { ipcMain, webContents } = require('electron')
-
     this.jancy = jancy
     this.listeners = []
     this.count = 0
 
     /* We should first retrieve the current value of this.count from localstorage.
     ** We can use the getItem method on storeRegistry object on the Jancy object
-    ** to do this.
-    **
-    ** storeRegistry.getItem expects 2 arguments.
-    **
-    ** namespace - string used to identify a custom namespace for your storage
-    ** key - string used as the name of a variable we want to retieve a value for
-    **
-    ** getItem will return a string representing the value previously associated with
-    ** "key" or null if it's not set.
+    ** to do this (see https://docs.jancy.io/docs/development/jancy-interfaces/store-registry).
     */
     const value = this.jancy.storeRegistry.getItem(
       "example",
@@ -232,8 +217,9 @@ class BackgroundAPI {
     }
 
     /* The BackgroundAPI is instantiated in Jancy's main process and not
-    ** a renderer process. We can use electron's ipcMain module to listen
+    ** a renderer process. We can use Jancy's IPC interface to listen
     ** for messages on our own custom channel and react to them.
+    ** (see https://docs.jancy.io/docs/development/jancy-interfaces/ipc)
     **
     ** Here was are setting up a couple of our own message channels.
     **
@@ -245,7 +231,7 @@ class BackgroundAPI {
     ** the jancy object to do this. We then broadcast out the current count to all of
     ** our pages registered via "example-register-page".
     */
-    ipcMain.on('example-update', (event, arg) => {
+    jancy.ipc.on('example-update', (event, arg) => {
 
       this.count++
 
@@ -265,10 +251,7 @@ class BackgroundAPI {
       ** below.
       */
       for (let ldx=0; ldx < this.listeners.length; ++ldx) {
-        try {
-          const wc = webContents.fromId(this.listeners[ldx])
-          wc.send('example-count-updated', this.count)
-        } catch (err) {
+        if (!jancy.ipc.sendTo(this.listeners[ldx], "example-count-updated", this.count)) {
           this.jancy.console.log(`example-plugin: removing listener ${ this.listeners[ldx] }`)
           this.listeners.splice(ldx, 1)
           --ldx;
@@ -280,11 +263,11 @@ class BackgroundAPI {
     /* example-register-page is a message channel that will be used by the custom
     ** example Jancy page everytime it loads (see page/index.js). 
     **
-    ** Instead of using ipcMain.on here like the "example-update" channel, we use ipcMain.handle
-    ** (see https://www.electronjs.org/docs/latest/api/ipc-main) which has the ability
+    ** Instead of using jancy.ipc.on here like the "example-update" channel, we use jancy.ipc.handle
+    ** (see https://docs/jancy.io/docs/development/jancy-interfaces/ipc) which has the ability
     ** to return a value back to the caller.
     */
-    ipcMain.handle('example-register-page', (event, arg) => {
+    jancy.ipc.handle('example-register-page', (event, arg) => {
       /* arg is a webContent id that should be used to send an "example-count-updated" message on
       ** whenever this.count changes.
       */
@@ -292,13 +275,9 @@ class BackgroundAPI {
       this.listeners.push(arg)
       return this.count
     })
-
   }
 
   destroy() {
-    const { ipcMain } = require('electron')
-    ipcMain.off('example-update')
-    ipcMain.off('example-register-page')
+    // TODO we should remove our channel listeners and handle listeners add via jancyAPI.ipc.on and jancyAPI.ipc.handle.
   }
-
 }
