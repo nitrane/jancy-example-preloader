@@ -76,7 +76,8 @@ module.exports = {
         '^.*stubhub\.com.*$'
       ],
       pluginPath: __dirname,
-      entry: "myPreloaderFunction"
+      entry: "myPreloaderFunction",
+      preloaderVersion: 1
     }
 
     myPreloaderId = jancy.preloaders.add(myPreloader)
