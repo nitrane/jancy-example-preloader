@@ -83,7 +83,7 @@ module.exports = {
     myPreloaderId = jancy.preloaders.add(myPreloader)
 
     /* A Jancy page is one way you can add your own user interface to Jancy
-    ** (see https://docs.jancy.io/docs/development/jancy-interfaces/page-registry).
+    ** (see https://docs.jancy.io/docs/developers/jancy-interfaces/page-registry).
     **
     ** Once installed, your page will be available in Jancy at the URL
     ** jancy://<your page name>
@@ -206,7 +206,7 @@ class BackgroundAPI {
 
     /* We should first retrieve the current value of this.count from localstorage.
     ** We can use the getItem method on storeRegistry object on the Jancy object
-    ** to do this (see https://docs.jancy.io/docs/development/jancy-interfaces/store-registry).
+    ** to do this (see https://docs.jancy.io/docs/developers/jancy-interfaces/store-registry).
     */
     const value = this.jancy.storeRegistry.getItem(
       "example",
@@ -220,7 +220,7 @@ class BackgroundAPI {
     /* The BackgroundAPI is instantiated in Jancy's main process and not
     ** a renderer process. We can use Jancy's IPC interface to listen
     ** for messages on our own custom channel and react to them.
-    ** (see https://docs.jancy.io/docs/development/jancy-interfaces/ipc)
+    ** (see https://docs.jancy.io/docs/developers/jancy-interfaces/ipc)
     **
     ** Here was are setting up a couple of our own message channels.
     **
@@ -265,7 +265,7 @@ class BackgroundAPI {
     ** example Jancy page everytime it loads (see page/index.js). 
     **
     ** Instead of using jancy.ipc.on here like the "example-update" channel, we use jancy.ipc.handle
-    ** (see https://docs/jancy.io/docs/development/jancy-interfaces/ipc) which has the ability
+    ** (see https://docs/jancy.io/docs/developers/jancy-interfaces/ipc) which has the ability
     ** to return a value back to the caller.
     */
     jancy.ipc.handle('example-register-page', (event, arg) => {
