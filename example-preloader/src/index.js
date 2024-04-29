@@ -203,6 +203,7 @@ class BackgroundAPI {
     this.jancy = jancy
     this.listeners = []
     this.count = 0
+    this.onUpdateIPC = this.onUpdateIPC.bind(this)
 
     /* We should first retrieve the current value of this.count from localstorage.
     ** We can use the getItem method on storeRegistry object on the Jancy object
@@ -232,34 +233,7 @@ class BackgroundAPI {
     ** the jancy object to do this. We then broadcast out the current count to all of
     ** our pages registered via "example-register-page".
     */
-    jancy.ipc.on('example-update', (event, arg) => {
-
-      this.count++
-
-      /* storeRegistry.setItem expects 3 arguments.
-      **
-      ** namespace - string used to identify a custom namespace for your storage
-      ** key - string used as the name of a variable we want to store information for
-      ** value - string the value to assign to "key".
-      */
-      this.jancy.storeRegistry.setItem(
-        'example',
-        'count',
-        JSON.stringify(this.count)
-      )
-
-      /* Broadcast this.count to all webcontents registered via example-register-page channel
-      ** below.
-      */
-      for (let ldx=0; ldx < this.listeners.length; ++ldx) {
-        if (!jancy.ipc.sendTo(this.listeners[ldx], "example-count-updated", this.count)) {
-          this.jancy.console.log(`example-plugin: removing listener ${ this.listeners[ldx] }`)
-          this.listeners.splice(ldx, 1)
-          --ldx;
-        }
-      }
-
-    })
+    jancy.ipc.on('example-update', this.onUpdateIPC)
 
     /* example-register-page is a message channel that will be used by the custom
     ** example Jancy page everytime it loads (see page/index.js). 
@@ -279,6 +253,37 @@ class BackgroundAPI {
   }
 
   destroy() {
-    // TODO we should remove our channel listeners and handle listeners add via jancyAPI.ipc.on and jancyAPI.ipc.handle.
+    // We need to remove our IPC handlers we setup in the constructor.
+    this.jancy.ipc.off('example-update', this.onUpdateIPC)
+    this.jancy.ipc.removeHandler('example-register-page')
+  }
+
+
+  onUpdateIPC(event, arg) {
+
+    this.count++
+
+    /* storeRegistry.setItem expects 3 arguments.
+    **
+    ** namespace - string used to identify a custom namespace for your storage
+    ** key - string used as the name of a variable we want to store information for
+    ** value - string the value to assign to "key".
+    */
+    this.jancy.storeRegistry.setItem(
+      'example',
+      'count',
+      JSON.stringify(this.count)
+    )
+
+    /* Broadcast this.count to all webcontents registered via example-register-page channel
+    ** below.
+    */
+    for (let ldx=0; ldx < this.listeners.length; ++ldx) {
+      if (!jancy.ipc.sendTo(this.listeners[ldx], "example-count-updated", this.count)) {
+        this.jancy.console.log(`example-plugin: removing listener ${ this.listeners[ldx] }`)
+        this.listeners.splice(ldx, 1)
+        --ldx;
+      }
+    }
   }
 }
