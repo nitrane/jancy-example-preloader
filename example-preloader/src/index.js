@@ -133,7 +133,13 @@ module.exports = {
   ** This is the entry point of our preloader. This function runs before the
   ** webpage loads in a tab in an isolated context.
   ** ------------------------------------------------------------------------*/
-  myPreloaderFunction({ jancyAPI, tab, preferences }) {
+  myPreloaderFunction({ jancyAPI, tab, preferences, isMainFrame }) {
+
+    /* Don't do anything unless we're running in the main frame.
+    */
+    if (!isMainFrame) {
+      return
+    }
 
     /* myPreloaderFunction runs in the isolated context of the host webpage.
     ** Since we want to alter the host webpage, we need to inject our code that 
